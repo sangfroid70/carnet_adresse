@@ -1,4 +1,4 @@
-#include "addressbook.h"
+﻿#include "addressbook.h"
 #include <QLabel>
 #include <QLineEdit>
 #include <QTextEdit>
@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 #include <QString>
 #include <QMap>
+#include <QMessageBox>
 
 AddressBook::AddressBook(QWidget *parent)
     : QWidget(parent)
@@ -59,17 +60,57 @@ void AddressBook::ajouterContact() {
     oldNom = lineEditNom->text();
     oldAdresse = textEditAdresse->toPlainText();
 
+    lineEditNom->clear();
+    lineEditNom->setReadOnly(false);
+    lineEditNom->setFocus(Qt::OtherFocusReason);
+
+    textEditAdresse->clear();
+    textEditAdresse->setReadOnly(false);
+
     boutonAjouter->setEnabled(false);
     boutonSoumettre->show();
     boutonAnnuler->show();
-
-
 }
 
 void AddressBook::soumettreContact() {
+    QString nom (lineEditNom->text());
+    QString adresse (textEditAdresse->toPlainText());
+
+    if (nom.isEmpty() || adresse.isEmpty()) {
+        QMessageBox::information(this , tr("Champs obligatoires") , tr ("Veuillez remplir le nom et l'adresse."));
+        return;
+    }
+
+    if (! listeContacts.contains(nom)) {
+        listeContacts.insert(nom , adresse);
+        QMessageBox::information(this , tr("Contact ajouté") , tr ("Le contact \"%1\" a bien été ajouté").arg(nom));
+    } else {
+        QMessageBox::information (this , tr ("Contact existant") , tr ("Un contact portant ce nom existe déjà"));
+        return;
+    }
+
+    if (listeContacts.isEmpty()) {
+        lineEditNom->clear();
+        textEditAdresse->clear();
+    }
+
+    lineEditNom->setReadOnly(true);
+    textEditAdresse->setReadOnly(true);
+
+    boutonAjouter->setEnabled(true);
+    boutonSoumettre->hide();
+    boutonAnnuler->hide();
 
 }
 
 void AddressBook::annuler() {
+    lineEditNom->setText(oldNom);
+    lineEditNom->setReadOnly(true);
 
+    textEditAdresse->setText(oldAdresse);
+    textEditAdresse->setReadOnly(true);
+
+    boutonAjouter->setEnabled(true);
+    boutonSoumettre->hide();
+    boutonAnnuler->hide();
 }
