@@ -10,6 +10,7 @@
 #include <QMap>
 #include <QMessageBox>
 
+
 AddressBook::AddressBook(QWidget *parent)
     : QWidget(parent)
 {
@@ -146,9 +147,9 @@ void AddressBook::soumettreContact() {
             } else {
                 QMessageBox::information (this ,
                                           tr ("Erreur modification") ,
-                                          tr ("\"%1\" ne figure pas dans vos contacts.").arg(nom));
+                                          tr ("\"%1\" figure déjà dans vos contacts.").arg(nom));
             }
-        } else {
+        } else if (oldAdresse != adresse){
             QMessageBox::information(this ,
                                      tr("Contact modifié") ,
                                      tr("Modification du contact \"%1\"").arg(nom));
