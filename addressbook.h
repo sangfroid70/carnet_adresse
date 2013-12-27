@@ -10,8 +10,7 @@ class QLineEdit;
 class QTextEdit;
 class QPushButton;
 class QVBoxLayout;
-//class QMap;
-class QString;
+class FindDialog;
 
 class AddressBook : public QWidget
 {
@@ -31,22 +30,25 @@ public slots:
     void annuler ();
     void previous ();
     void next();
+    void trouverContact ();
 
 private:
-    QLineEdit *lineEditNom;
-    QTextEdit *textEditAdresse;
+    QLineEdit *nomLineEdit;
+    QTextEdit *adresseTextEdit;
 
-    QPushButton *boutonAjouter;
-    QPushButton *boutonSoumettre;
-    QPushButton *boutonAnnuler;
-    QPushButton *boutonPrevious;
-    QPushButton *boutonNext;
-    QPushButton *boutonEditer;
-    QPushButton *boutonSupprimer;
+    QPushButton *ajouterBouton;
+    QPushButton *soumettreBouton;
+    QPushButton *annulerBouton;
+    QPushButton *previousBouton;
+    QPushButton *nextBouton;
+    QPushButton *editerBouton;
+    QPushButton *supprimerBouton;
+    QPushButton *chercherBouton;
 
     QMap<QString , QString> listeContacts;
     QString oldNom;
     QString oldAdresse;
+    FindDialog *rechercheDialog;
 
     Mode currentMode;
 };

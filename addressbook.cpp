@@ -1,4 +1,5 @@
 ﻿#include "addressbook.h"
+#include "finddialog.h"
 #include <QLabel>
 #include <QLineEdit>
 #include <QTextEdit>
@@ -10,45 +11,47 @@
 #include <QMap>
 #include <QMessageBox>
 
-
 AddressBook::AddressBook(QWidget *parent)
     : QWidget(parent)
 {
+    rechercheDialog = new FindDialog;
 
     QLabel *labelNom        =   new QLabel (tr("Nom :"));
-    lineEditNom             =   new QLineEdit;
-    lineEditNom->setReadOnly(true);
+    nomLineEdit             =   new QLineEdit;
+    nomLineEdit->setReadOnly(true);
 
     QLabel *labelAdresse    =   new QLabel(tr("Adresse :"));
-    textEditAdresse         =   new QTextEdit;
-    textEditAdresse->setReadOnly(true);
+    adresseTextEdit         =   new QTextEdit;
+    adresseTextEdit->setReadOnly(true);
 
     QGridLayout *gridLayout = new QGridLayout;
     QVBoxLayout *layoutBoutons = new QVBoxLayout;
     QHBoxLayout *layoutBoutonsNavigation = new QHBoxLayout;
 
-    boutonAjouter = new QPushButton (tr ("Ajouter"));
-    boutonSoumettre = new QPushButton (tr ("Soumettre"));
-    boutonAnnuler = new QPushButton (tr("Annuler"));
-    boutonPrevious = new QPushButton (tr ("Précédent"));
-    boutonNext = new QPushButton (tr ("Suivant"));
-    boutonEditer = new QPushButton (tr ("&Editer"));
-    boutonSupprimer = new QPushButton (tr ("&Supprimer"));
+    ajouterBouton = new QPushButton (tr ("Ajouter"));
+    soumettreBouton = new QPushButton (tr ("Soumettre"));
+    annulerBouton = new QPushButton (tr("Annuler"));
+    previousBouton = new QPushButton (tr ("Précédent"));
+    nextBouton = new QPushButton (tr ("Suivant"));
+    editerBouton = new QPushButton (tr ("&Editer"));
+    supprimerBouton = new QPushButton (tr ("&Supprimer"));
+    chercherBouton = new QPushButton (tr("Chercher"));
 
-    layoutBoutons->addWidget(boutonAjouter, Qt::AlignTop);
-    layoutBoutons->addWidget(boutonSoumettre);
-    layoutBoutons->addWidget(boutonAnnuler);
-    layoutBoutons->addWidget(boutonEditer);
-    layoutBoutons->addWidget(boutonSupprimer);
+    layoutBoutons->addWidget(ajouterBouton, Qt::AlignTop);
+    layoutBoutons->addWidget(soumettreBouton);
+    layoutBoutons->addWidget(annulerBouton);
+    layoutBoutons->addWidget(editerBouton);
+    layoutBoutons->addWidget(supprimerBouton);
+    layoutBoutons->addWidget(chercherBouton);
     layoutBoutons->addStretch();
 
-    layoutBoutonsNavigation->addWidget(boutonPrevious);
-    layoutBoutonsNavigation->addWidget(boutonNext);
+    layoutBoutonsNavigation->addWidget(previousBouton);
+    layoutBoutonsNavigation->addWidget(nextBouton);
 
     gridLayout->addWidget(labelNom , 0 , 0);
-    gridLayout->addWidget(lineEditNom , 0 , 1);
+    gridLayout->addWidget(nomLineEdit , 0 , 1);
     gridLayout->addWidget(labelAdresse , 1 , 0);
-    gridLayout->addWidget(textEditAdresse ,  1 , 1);
+    gridLayout->addWidget(adresseTextEdit ,  1 , 1);
     gridLayout->addLayout(layoutBoutons , 1 , 2);
     gridLayout->addLayout(layoutBoutonsNavigation , 2 , 1);
 
@@ -58,13 +61,14 @@ AddressBook::AddressBook(QWidget *parent)
     updateInterface(NavigationMode);
 
     // Connecteurs
-    QObject::connect(boutonAjouter , SIGNAL(clicked()) , this , SLOT (ajouterContact()));
-    QObject::connect(boutonSoumettre , SIGNAL (clicked()) , this , SLOT (soumettreContact()));
-    QObject::connect(boutonAnnuler , SIGNAL(clicked()) , this , SLOT(annuler()));
-    QObject::connect(boutonPrevious , SIGNAL(clicked()) , this ,SLOT (previous()));
-    QObject::connect(boutonNext , SIGNAL(clicked()) , this , SLOT(next()));
-    QObject::connect(boutonEditer , SIGNAL(clicked()) ,this , SLOT(editerContact()));
-    QObject::connect(boutonSupprimer , SIGNAL(clicked()) , this , SLOT(supprimerContact()));
+    QObject::connect(ajouterBouton , SIGNAL(clicked()) , this , SLOT (ajouterContact()));
+    QObject::connect(soumettreBouton , SIGNAL (clicked()) , this , SLOT (soumettreContact()));
+    QObject::connect(annulerBouton , SIGNAL(clicked()) , this , SLOT(annuler()));
+    QObject::connect(previousBouton , SIGNAL(clicked()) , this ,SLOT (previous()));
+    QObject::connect(nextBouton , SIGNAL(clicked()) , this , SLOT(next()));
+    QObject::connect(editerBouton , SIGNAL(clicked()) ,this , SLOT(editerContact()));
+    QObject::connect(supprimerBouton , SIGNAL(clicked()) , this , SLOT(supprimerContact()));
+    QObject::connect(chercherBouton , SIGNAL(clicked()) , this , SLOT(trouverContact()));
 }
 
 AddressBook::~AddressBook()
@@ -74,25 +78,25 @@ AddressBook::~AddressBook()
 
 /////////// Slots //////////
 void AddressBook::ajouterContact() {
-    oldNom = lineEditNom->text();
-    oldAdresse = textEditAdresse->toPlainText();
+    oldNom = nomLineEdit->text();
+    oldAdresse = adresseTextEdit->toPlainText();
 
-    lineEditNom->clear();
-    textEditAdresse->clear();
+    nomLineEdit->clear();
+    adresseTextEdit->clear();
 
     updateInterface(AddingMode);
 }
 
 void AddressBook::editerContact() {
-    oldNom = lineEditNom->text();
-    oldAdresse = textEditAdresse->toPlainText();
+    oldNom = nomLineEdit->text();
+    oldAdresse = adresseTextEdit->toPlainText();
 
     updateInterface(EditingMode);
 }
 
 void AddressBook::supprimerContact() {
-    QString nom = lineEditNom->text();
-    QString adresse = textEditAdresse->toPlainText();
+    QString nom = nomLineEdit->text();
+    QString adresse = adresseTextEdit->toPlainText();
 
     if (listeContacts.contains(nom)) {
         int bouton = QMessageBox::question (this ,
@@ -114,8 +118,8 @@ void AddressBook::supprimerContact() {
 }
 
 void AddressBook::soumettreContact() {
-    QString nom (lineEditNom->text());
-    QString adresse (textEditAdresse->toPlainText());
+    QString nom (nomLineEdit->text());
+    QString adresse (adresseTextEdit->toPlainText());
 
     if (nom.isEmpty() || adresse.isEmpty()) {
         QMessageBox::information(this ,
@@ -161,19 +165,19 @@ void AddressBook::soumettreContact() {
 }
 
 void AddressBook::annuler() {
-    lineEditNom->setText(oldNom);
-    lineEditNom->setReadOnly(true);
+    nomLineEdit->setText(oldNom);
+    nomLineEdit->setReadOnly(true);
 
     updateInterface(NavigationMode);
 }
 
 void AddressBook::previous () {
-    QString nom = lineEditNom->text();
+    QString nom = nomLineEdit->text();
     QMap<QString , QString>::Iterator i = listeContacts.find(nom);
 
     if ( i == listeContacts.end()) {
-        lineEditNom->clear();
-        textEditAdresse->clear();
+        nomLineEdit->clear();
+        adresseTextEdit->clear();
         return;
     }
 
@@ -181,12 +185,12 @@ void AddressBook::previous () {
         i = listeContacts.end();
 
     i--;
-    lineEditNom->setText(i.key());
-    textEditAdresse->setText(i.value());
+    nomLineEdit->setText(i.key());
+    adresseTextEdit->setText(i.value());
 }
 
 void AddressBook::next () {
-    QString nom = lineEditNom->text();
+    QString nom = nomLineEdit->text();
     QMap<QString , QString>::Iterator i = listeContacts.find(nom);
 
     if ( i != listeContacts.end())
@@ -195,11 +199,29 @@ void AddressBook::next () {
     if ( i == listeContacts.end())
         i = listeContacts.begin();
 
-    lineEditNom->setText(i.key());
-    textEditAdresse->setText(i.value());
+    nomLineEdit->setText(i.key());
+    adresseTextEdit->setText(i.value());
 }
 
+void AddressBook::trouverContact() {
+    rechercheDialog->show();
 
+    if (rechercheDialog->exec() == QDialog::Accepted) {
+        QString recherche = rechercheDialog->getRecherche();
+
+        if (listeContacts.contains(recherche)) {
+            QMap<QString,QString>::Iterator i = listeContacts.find(recherche);
+            nomLineEdit->setText(i.key());
+            adresseTextEdit->setText(i.value());
+        } else {
+            QMessageBox::information (this ,
+                                      tr ("Pas de résultat") ,
+                                      tr ("Le contact \"%1\" n'existe pas.").arg(recherche));
+            return;
+        }
+    }
+    updateInterface(NavigationMode);
+}
 
 void AddressBook::updateInterface(Mode mode) {
     currentMode = mode;
@@ -207,39 +229,38 @@ void AddressBook::updateInterface(Mode mode) {
     switch (currentMode) {
     case AddingMode:
     case EditingMode:
-        lineEditNom->setReadOnly(false);
-        lineEditNom->setFocus(Qt::OtherFocusReason);
-        textEditAdresse->setReadOnly(false);
+        nomLineEdit->setReadOnly(false);
+        nomLineEdit->setFocus(Qt::OtherFocusReason);
+        adresseTextEdit->setReadOnly(false);
 
-        boutonAjouter->setEnabled(false);
-        boutonEditer->setEnabled(false);
-        boutonSupprimer->setEnabled(false);
+        ajouterBouton->setEnabled(false);
+        editerBouton->setEnabled(false);
+        supprimerBouton->setEnabled(false);
 
-        boutonNext->setEnabled(false);
-        boutonPrevious->setEnabled(false);
+        nextBouton->setEnabled(false);
+        previousBouton->setEnabled(false);
 
-        boutonSoumettre->show();
-        boutonAnnuler->show();
+        soumettreBouton->show();
+        annulerBouton->show();
         break;
 
     case NavigationMode:
         if (listeContacts.isEmpty()) {
-            lineEditNom->clear();
-            textEditAdresse->clear();
+            nomLineEdit->clear();
+            adresseTextEdit->clear();
         }
-        lineEditNom->setReadOnly(true);
-        textEditAdresse->setReadOnly(true);
+        nomLineEdit->setReadOnly(true);
+        adresseTextEdit->setReadOnly(true);
 
-        boutonAjouter->setEnabled(true);
+        ajouterBouton->setEnabled(true);
 
         int nombre = listeContacts.size();
-        boutonNext->setEnabled(nombre > 1);
-        boutonPrevious->setEnabled(nombre > 1);
-        boutonSupprimer->setEnabled(nombre >= 1);
-        boutonEditer->setEnabled(nombre >= 1);
+        nextBouton->setEnabled(nombre > 1);
+        previousBouton->setEnabled(nombre > 1);
+        supprimerBouton->setEnabled(nombre >= 1);
+        editerBouton->setEnabled(nombre >= 1);
 
-        boutonSoumettre->hide();
-        boutonAnnuler->hide();
+        soumettreBouton->hide();
+        annulerBouton->hide();
     }
-
 }

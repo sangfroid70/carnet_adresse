@@ -13,6 +13,8 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        addressbook.cpp
+        addressbook.cpp \
+    finddialog.cpp
 
-HEADERS  += addressbook.h
+HEADERS  += addressbook.h \
+    finddialog.h
