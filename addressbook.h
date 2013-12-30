@@ -33,6 +33,7 @@ public slots:
     void trouverContact ();
     void chargerFichier ();
     void sauverFichier ();
+    void Tester();
 
 private:
     QLineEdit *nomLineEdit;
