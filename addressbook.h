@@ -31,6 +31,8 @@ public slots:
     void previous ();
     void next();
     void trouverContact ();
+    void chargerFichier ();
+    void sauverFichier ();
 
 private:
     QLineEdit *nomLineEdit;
@@ -44,6 +46,8 @@ private:
     QPushButton *editerBouton;
     QPushButton *supprimerBouton;
     QPushButton *chercherBouton;
+    QPushButton *chargerBouton;
+    QPushButton *sauverBouton;
 
     QMap<QString , QString> listeContacts;
     QString oldNom;

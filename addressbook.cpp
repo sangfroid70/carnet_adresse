@@ -10,6 +10,9 @@
 #include <QString>
 #include <QMap>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QFile>
+#include <QDataStream>
 
 AddressBook::AddressBook(QWidget *parent)
     : QWidget(parent)
@@ -36,6 +39,10 @@ AddressBook::AddressBook(QWidget *parent)
     editerBouton = new QPushButton (tr ("&Editer"));
     supprimerBouton = new QPushButton (tr ("&Supprimer"));
     chercherBouton = new QPushButton (tr("Chercher"));
+    chargerBouton = new QPushButton (tr("Charger..."));
+    chargerBouton->setToolTip(tr("Charger depuis un fichier"));
+    sauverBouton= new QPushButton (tr ("Sauver..."));
+    sauverBouton->setToolTip(tr("Sauvegarder dans fichier"));
 
     layoutBoutons->addWidget(ajouterBouton, Qt::AlignTop);
     layoutBoutons->addWidget(soumettreBouton);
@@ -43,6 +50,8 @@ AddressBook::AddressBook(QWidget *parent)
     layoutBoutons->addWidget(editerBouton);
     layoutBoutons->addWidget(supprimerBouton);
     layoutBoutons->addWidget(chercherBouton);
+    layoutBoutons->addWidget(chargerBouton);
+    layoutBoutons->addWidget(sauverBouton);
     layoutBoutons->addStretch();
 
     layoutBoutonsNavigation->addWidget(previousBouton);
@@ -69,6 +78,8 @@ AddressBook::AddressBook(QWidget *parent)
     QObject::connect(editerBouton , SIGNAL(clicked()) ,this , SLOT(editerContact()));
     QObject::connect(supprimerBouton , SIGNAL(clicked()) , this , SLOT(supprimerContact()));
     QObject::connect(chercherBouton , SIGNAL(clicked()) , this , SLOT(trouverContact()));
+    QObject::connect(chargerBouton , SIGNAL(clicked()) , this , SLOT(chargerFichier()));
+    QObject::connect(sauverBouton , SIGNAL(clicked()) , this , SLOT(sauverFichier()));
 }
 
 AddressBook::~AddressBook()
@@ -221,6 +232,60 @@ void AddressBook::trouverContact() {
         }
     }
     updateInterface(NavigationMode);
+}
+
+void AddressBook::chargerFichier() {
+    QString nomFichier = QFileDialog::getOpenFileName(this,
+                                                      tr ("Charger depuis un fichier"),
+                                                      "",
+                                                      tr ("Carnet d'adresse (*.abk);;Tous les fichiers (*)"));
+    if (nomFichier.isEmpty())
+        return;
+    else {
+        QFile fichier (nomFichier);
+        if (!fichier.open(QIODevice::ReadOnly)) {
+            QMessageBox::information(this,
+                                     tr ("Erreur de chargement"),
+                                     fichier.errorString());
+            return;
+        }
+        QDataStream in (&fichier);
+        in.setVersion(QDataStream::Qt_4_7);
+        listeContacts.empty();
+        in >> listeContacts;
+        if (listeContacts.isEmpty()) {
+            QMessageBox::information (this ,
+                                      tr ("Pas de contacts"),
+                                      tr ("Aucun contact à importer dans le fichier"));
+        } else {
+            QMap<QString , QString>::iterator i = listeContacts.begin();
+            nomLineEdit->setText(i.key());
+            adresseTextEdit->setText(i.value());
+        }
+
+    }
+    updateInterface(NavigationMode);
+}
+
+void AddressBook::sauverFichier() {
+    QString nomFichier = QFileDialog::getSaveFileName(this ,
+                                                 tr("Sauvegarder dans un fichier") ,
+                                                 "" ,
+                                                 tr("Carnet d'adresse (*.abk);;Tous les fichiers (*)"));
+    if (nomFichier.isEmpty())
+        return;
+    else {
+        QFile fichier (nomFichier);
+        if (!fichier.open(QIODevice::WriteOnly)) {
+            QMessageBox::information(this,
+                                     tr ("Erreur d'écriture"),
+                                     fichier.errorString());
+            return;
+        }
+        QDataStream out (&fichier);
+        out.setVersion(QDataStream::Qt_4_7);
+        out << listeContacts;
+    }
 }
 
 void AddressBook::updateInterface(Mode mode) {
