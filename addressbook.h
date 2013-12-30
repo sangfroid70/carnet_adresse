@@ -15,6 +15,7 @@ class QListView;
 class QStandardItemModel;
 class QTableView;
 class QModelIndex;
+class QItemSelectionModel;
 
 class AddressBook : public QWidget
 {
@@ -38,7 +39,7 @@ public slots:
     void trouverContact ();
     void chargerFichier ();
     void sauverFichier ();
-    void afficherContact (const QModelIndex & monIndex);
+    void afficherContact (const QModelIndex &index);
 
 private:
     QLineEdit *nomLineEdit;
@@ -61,6 +62,7 @@ private:
     FindDialog *rechercheDialog;
     QListView *contactListView;
     QStandardItemModel *model;
+    QItemSelectionModel *selectionModel;
 
     Mode currentMode;
 };

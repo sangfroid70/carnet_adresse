@@ -28,6 +28,8 @@ AddressBook::AddressBook(QWidget *parent)
     contactListView = new QListView;
     contactListView->setModel(model);
 
+    QItemSelectionModel *selectionModel = contactListView->selectionModel();
+
     QLabel *labelNom        =   new QLabel (tr("Nom :"));
     nomLineEdit             =   new QLineEdit;
     nomLineEdit->setReadOnly(true);
