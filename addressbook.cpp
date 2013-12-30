@@ -13,11 +13,20 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QDataStream>
+#include <QListView>
+#include <QTableView>
+#include <QStandardItemModel>
+#include <QItemSelectionModel>
 
 AddressBook::AddressBook(QWidget *parent)
     : QWidget(parent)
 {
     rechercheDialog = new FindDialog;
+
+    model = new QStandardItemModel(0,2);
+
+    contactListView = new QListView;
+    contactListView->setModel(model);
 
     QLabel *labelNom        =   new QLabel (tr("Nom :"));
     nomLineEdit             =   new QLineEdit;
@@ -57,12 +66,13 @@ AddressBook::AddressBook(QWidget *parent)
     layoutBoutonsNavigation->addWidget(previousBouton);
     layoutBoutonsNavigation->addWidget(nextBouton);
 
-    gridLayout->addWidget(labelNom , 0 , 0);
-    gridLayout->addWidget(nomLineEdit , 0 , 1);
-    gridLayout->addWidget(labelAdresse , 1 , 0);
-    gridLayout->addWidget(adresseTextEdit ,  1 , 1);
-    gridLayout->addLayout(layoutBoutons , 1 , 2);
-    gridLayout->addLayout(layoutBoutonsNavigation , 2 , 1);
+    gridLayout->addWidget(contactListView , 0 , 0 , 3 , 1);
+    gridLayout->addWidget(labelNom , 0 , 1);
+    gridLayout->addWidget(nomLineEdit , 0 , 2);
+    gridLayout->addWidget(labelAdresse , 1 , 1);
+    gridLayout->addWidget(adresseTextEdit ,  1 , 2);
+    gridLayout->addLayout(layoutBoutons , 1 , 3);
+    gridLayout->addLayout(layoutBoutonsNavigation , 2 , 2);
 
     setLayout(gridLayout);
     setWindowTitle(tr("Carnet d'adresses"));
@@ -80,6 +90,7 @@ AddressBook::AddressBook(QWidget *parent)
     QObject::connect(chercherBouton , SIGNAL(clicked()) , this , SLOT(trouverContact()));
     QObject::connect(chargerBouton , SIGNAL(clicked()) , this , SLOT(chargerFichier()));
     QObject::connect(sauverBouton , SIGNAL(clicked()) , this , SLOT(sauverFichier()));
+    QObject::connect(contactListView , SIGNAL(activated(QModelIndex)) , this , SLOT(afficherContact(QModelIndex)));
 }
 
 AddressBook::~AddressBook()
@@ -288,8 +299,36 @@ void AddressBook::sauverFichier() {
     }
 }
 
+//////////////// Méthodes ////////////////////////
+
+void AddressBook::remplirListeContacts() {
+    if (listeContacts.isEmpty()) {
+        return;
+    }
+
+    int taille = listeContacts.size();
+    QMap<QString , QString>::iterator i = listeContacts.begin();
+    model->clear();
+    model->setRowCount(taille);
+    for (int row = 0 ; row < taille ; row++) {
+       QStandardItem *item = new QStandardItem (i.key());
+       model->setItem(row , item);
+       item->setEditable(false);
+       i++;
+    }
+}
+
+void AddressBook::afficherContact (const QModelIndex & monIndex) {
+    QString item = model->data(monIndex).toString();
+    QMap<QString , QString>::iterator i = listeContacts.find (item);
+    nomLineEdit->setText(i.key());
+    adresseTextEdit->setText(i.value());
+    updateInterface(NavigationMode);
+}
+
 void AddressBook::updateInterface(Mode mode) {
     currentMode = mode;
+    remplirListeContacts();
 
     switch (currentMode) {
     case AddingMode:

@@ -11,6 +11,10 @@ class QTextEdit;
 class QPushButton;
 class QVBoxLayout;
 class FindDialog;
+class QListView;
+class QStandardItemModel;
+class QTableView;
+class QModelIndex;
 
 class AddressBook : public QWidget
 {
@@ -21,6 +25,7 @@ public:
     ~AddressBook();
     enum Mode {NavigationMode , AddingMode , EditingMode};
     void updateInterface (Mode mode);
+    void remplirListeContacts ();
 
 public slots:
     void ajouterContact ();
@@ -33,7 +38,7 @@ public slots:
     void trouverContact ();
     void chargerFichier ();
     void sauverFichier ();
-    void Tester();
+    void afficherContact (const QModelIndex & monIndex);
 
 private:
     QLineEdit *nomLineEdit;
@@ -54,6 +59,8 @@ private:
     QString oldNom;
     QString oldAdresse;
     FindDialog *rechercheDialog;
+    QListView *contactListView;
+    QStandardItemModel *model;
 
     Mode currentMode;
 };
