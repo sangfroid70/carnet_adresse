@@ -40,6 +40,7 @@ public slots:
     void chargerFichier ();
     void sauverFichier ();
     void afficherContact (const QModelIndex &index);
+    void selection ();
 
 private:
     QLineEdit *nomLineEdit;

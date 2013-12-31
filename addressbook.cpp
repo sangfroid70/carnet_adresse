@@ -17,6 +17,7 @@
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QItemSelectionModel>
+#include <QDebug>
 
 AddressBook::AddressBook(QWidget *parent)
     : QWidget(parent)
@@ -28,7 +29,7 @@ AddressBook::AddressBook(QWidget *parent)
     contactListView = new QListView;
     contactListView->setModel(model);
 
-    QItemSelectionModel *selectionModel = contactListView->selectionModel();
+    //selectionModel = contactListView->selectionModel();
 
     QLabel *labelNom        =   new QLabel (tr("Nom :"));
     nomLineEdit             =   new QLineEdit;
@@ -92,7 +93,8 @@ AddressBook::AddressBook(QWidget *parent)
     QObject::connect(chercherBouton , SIGNAL(clicked()) , this , SLOT(trouverContact()));
     QObject::connect(chargerBouton , SIGNAL(clicked()) , this , SLOT(chargerFichier()));
     QObject::connect(sauverBouton , SIGNAL(clicked()) , this , SLOT(sauverFichier()));
-    QObject::connect(contactListView , SIGNAL(activated(QModelIndex)) , this , SLOT(afficherContact(QModelIndex)));
+    QObject::connect(contactListView , SIGNAL(clicked(QModelIndex)) , this , SLOT(afficherContact(QModelIndex)));
+    //QObject::connect(contactListView , SIGNAL(clicked(QModelIndex)) , this , SLOT(selection()));
 }
 
 AddressBook::~AddressBook()
@@ -301,6 +303,19 @@ void AddressBook::sauverFichier() {
     }
 }
 
+void AddressBook::afficherContact (const QModelIndex & monIndex) {
+    QString item = model->data(monIndex).toString();
+    QMap<QString , QString>::iterator i = listeContacts.find (item);
+    nomLineEdit->setText(i.key());
+    adresseTextEdit->setText(i.value());
+    updateInterface(NavigationMode);
+}
+
+void AddressBook::selection() {
+    //qDebug() << selectionModel->currentIndex();
+    //selectionModel->select(&selectionModel->currentIndex());
+}
+
 //////////////// Méthodes ////////////////////////
 
 void AddressBook::remplirListeContacts() {
@@ -314,19 +329,12 @@ void AddressBook::remplirListeContacts() {
     model->setRowCount(taille);
     for (int row = 0 ; row < taille ; row++) {
        QStandardItem *item = new QStandardItem (i.key());
-       model->setItem(row , item);
        item->setEditable(false);
+       model->setItem(row , item);
        i++;
     }
 }
 
-void AddressBook::afficherContact (const QModelIndex & monIndex) {
-    QString item = model->data(monIndex).toString();
-    QMap<QString , QString>::iterator i = listeContacts.find (item);
-    nomLineEdit->setText(i.key());
-    adresseTextEdit->setText(i.value());
-    updateInterface(NavigationMode);
-}
 
 void AddressBook::updateInterface(Mode mode) {
     currentMode = mode;
